@@ -2,15 +2,14 @@
 # Setup Redis
 #
 require 'redis'
-require 'redis/namespace'
 require 'redisted'
 begin
-  redis_nons=Redis.new({
+  $redis=Redis.new({
     host: "localhost",
     port: 6379,
     timeout: 5,
   })
-  $redis=Redis::Namespace.new(:mmtest,redis: redis_nons)
+  $redis.select 15 # Database #15
   Redisted::Base.redis=$redis
 rescue =>err
   puts "MessageManage redis error: #{err}"
