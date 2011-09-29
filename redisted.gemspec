@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Lee Atchison"]
   s.email       = ["lee@leeatchison.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{Rails models based on Redis.}
+  s.description = %q{Rails models based Redis.}
 
   s.rubyforge_project = "redisted"
 
@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
+  s.add_development_dependency "rails"
+  s.add_development_dependency "rspec"
+  s.add_development_dependency "capybara"
   s.add_runtime_dependency "redis"
 end
