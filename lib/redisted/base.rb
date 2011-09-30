@@ -44,9 +44,9 @@ module Redisted
       @id
     end
     def to_attr_type key,value
-      raise InvalidField,"Unknown field: #{key}" if @@field_list[key].nil?
+      raise InvalidField,"Unknown field: #{key}" if fields[key].nil?
       return nil if value.nil?
-      case @@field_list[key][:type]
+      case fields[key][:type]
         when :string then value
         when :symbol then value.to_sym
         when :integer then value.to_i
@@ -57,7 +57,7 @@ module Redisted
     end
     def to_redis_type key,value
       return nil if value.nil?
-      case @@field_list[key][:type]
+      case fields[key][:type]
         when :string then value
         when :symbol then value.to_s
         when :integer then value.to_i.to_s
@@ -67,11 +67,11 @@ module Redisted
       end
     end
     def method_missing(id, *args)
-      Base.fields.each do |field,options|
+      fields.each do |field,options|
         return get_attr(field) if id==field
         return set_attr(field,args[0]) if id.to_s==field.to_s+"="
       end
-      Base.references.each do |ref,options|
+      references.each do |ref,options|
         return get_reference(ref,options) if id==ref
         return set_reference(ref,options,args[0]) if id.to_s==ref.to_s+"="
       end
@@ -89,7 +89,21 @@ module Redisted
     end
 
 
+    def get_obj_option key
+      self.class.get_obj_option key
+    end
+    def set_obj_option key,val
+      self.class.set_obj_option key,val
+    end
     class << self
+      def get_obj_option key
+        @obj_options||={}
+        @obj_options[key]
+      end
+      def set_obj_option key,val
+        @obj_options||={}
+        @obj_options[key]=val
+      end
       def is_redisted_model?
         true
       end

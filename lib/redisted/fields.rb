@@ -1,9 +1,13 @@
 module Redisted
   class Base
+    def fields
+      self.class.fields
+    end
+    def scopes
+      self.class.scopes
+    end
     private
     def init_fields
-      @@field_list||={}
-      @@scope_list||={}
     end
     class << self
       public
@@ -11,16 +15,25 @@ module Redisted
       # Setup
       #
       def field value,options={}
-        @@field_list||={}
         options[:type]||=:string
-        @@field_list[value]=options
+        fields[value]=options
       end
       def fields
-        @@field_list
+        @fields||={}
+        @fields
+      end
+      def fields= val
+        @fields=val
+      end
+      def scopes
+        @scopes||={}
+        @scopes
+      end
+      def scopes= val
+        @scopes=val
       end
       def scope name,options
-        @@scope_list||={}
-        @@scope_list[name]=lambdafi_field(options)
+        scopes[name]=lambdafi_field(options)
       end
 
       private

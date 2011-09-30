@@ -12,6 +12,6 @@ begin
   $redis.select 15 # Database #15
   Redisted::Base.redis=$redis
 rescue =>err
-  puts "MessageManage redis error: #{err}"
-  raise "MessageManage redis error: #{err}"
+  puts "Redisted Test redis error: #{err}"
+  raise "Redisted Test redis error: #{err}"
 end

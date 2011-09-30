@@ -25,7 +25,6 @@ module Redisted
   class Base
     private
     def init_indexes
-      @@index_list||={}
     end
     public
     #
@@ -33,10 +32,19 @@ module Redisted
     # Setup
     #
     #
+    def indices
+      self.class.indices
+    end
     class << self
+      def indices= val
+        @indices=val
+      end
+      def indices
+        @indices||={}
+        @indices
+      end
       def index name,params
-        @@index_list||={}
-        raise InvalidIndex,"Index redfined: #{name}" if @@index_list[name]
+        raise InvalidIndex,"Index redfined: #{name}" if indices[name]
         entry={
             redis_key: "#{prefix}[#{name}]",
             optimistic_retry: params[:optimistic_retry],
@@ -65,7 +73,7 @@ module Redisted
                             nil
                           end
         end
-        @@index_list[name]=entry
+        indices[name]=entry
       end
       def lambdafi_index options,default_value
         lambda do |*args|
@@ -159,7 +167,7 @@ module Redisted
     end
     def uniq_index_watch_setup state
       # Begin optimistic locking for all indices that are impacted by these changes...
-      @@index_list.each do |name,index|
+      indices.each do |name,index|
         next if !index[:unique_index]
         next if (index[:fields] & state[:attr_names]).size==0
         @watch_list << index[:redis_key]
@@ -168,7 +176,7 @@ module Redisted
     end
 
     def uniq_index_verify state
-      @@index_list.each do |idxname,index|
+      indices.each do |idxname,index|
         next if !index[:unique_index]
         index[:fields].each do |fieldname|
           # if we don't have it, we need to get it now...directly from redis
@@ -180,7 +188,7 @@ module Redisted
       end
 
       cmds_to_do={}
-      @@index_list.each do |name,index|
+      indices.each do |name,index|
         next if !index[:unique_index]
         next if (index[:fields] & state[:attr_names]).size==0
         # Need to get the old and new index value...
@@ -244,14 +252,14 @@ module Redisted
       state
     end
     def index_watch_setup state
-      @@index_list.each do |name,index|
+      indices.each do |name,index|
         next if index[:unique_index]
         next if (!index[:fields].nil?) and ((index[:fields] & state[:attr_names]).size==0)
         @watch_list << index[:redis_key]
       end
       attr_old={}
       attr_old_status={}
-      @@index_list.each do |name,index|
+      indices.each do |name,index|
         next if index[:unique_index]
         # See if we have a "match" field...if so, we need to cache the old values
         if index[:match]
@@ -276,7 +284,7 @@ module Redisted
       state
     end
     def index_multi_end state
-      @@index_list.each do |name,index|
+      indices.each do |name,index|
         next if index[:unique_index]
         next if (!index[:fields].nil?) and ((index[:fields] & state[:attr_names]).size==0)
 

@@ -175,14 +175,12 @@ module Redisted
 
     class << self
       def scoped
-        @@scope_list||={}
-        Relation.new self,@@redis,@@scope_list,@@index_list
+        Relation.new self,@@redis,scopes,indices
       end
       def method_missing(id,*args,&proc)
-        @@scope_list||={}
         is_scoped=(id[0]=='_')
         is_scoped||=[:first,:last,:all,:each,:delete_all,:destroy_all,:where,:limit,:offset,:order,:reverse_order].include? id.to_sym
-        is_scoped||= !@@scope_list[id.to_sym].nil?
+        is_scoped||= !scopes[id.to_sym].nil?
         is_scoped||= (id[0,3]=="by_")
         return scoped.send(id,*args,&proc) if is_scoped
         super

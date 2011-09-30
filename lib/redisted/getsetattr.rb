@@ -1,12 +1,41 @@
 module Redisted
   class Base
+    class << self
+      def always_cache_until_save val=true
+        set_obj_option :cache_until_save,val
+      end
+      def pre_cache_all opts={}
+        opts[:keys]=:all if opts[:keys].nil?
+        opts[:when]=:create if opts[:when].nil?
+        set_obj_option :pre_cache_all,opts
+      end
+    end
     private
     def init_attributes
       @attributes_value={}
       @attributes_status={}
       @attributes_old={}
       @attributes_old_status={}
+      @cache_preload=false
       @cached_sets=false
+      @cached_sets=true if get_obj_option :cache_until_save
+    end
+    def pre_cache_values
+      return if @cache_preload
+      @cache_preload=true # Must be set first to prevent get_attr loop...
+      keys=get_obj_option(:pre_cache_all)[:keys]
+      except=get_obj_option(:pre_cache_all)[:except]
+      if keys==:all
+        fields.each do |k,v|
+          next if except and except.include? k
+          get_attr k
+        end
+      else
+        keys.each do |k|
+          next if except and except.include? k
+          get_attr k
+        end
+      end
     end
     public
     def set_attr key,val
@@ -35,6 +64,7 @@ module Redisted
       return to_attr_type(key,@attributes_value[key]) if [:cached,:dirty].include?(@attributes_status[key])
       return nil if !persisted?
       ret=to_attr_type key,@redis.hget("#{prefix}:#{@id}",key)
+      pre_cache_values if get_obj_option(:pre_cache_all) and get_obj_option(:pre_cache_all)[:when]==:first_read and !@cache_preload
       @attributes_value[key]=ret
       @attributes_status[key]=:cached
       ret
@@ -42,17 +72,22 @@ module Redisted
 
     def clear key=nil
       if key.nil?
-        @@field_list.each do |key,val|
+        self.class.fields.each do |key,val|
           raise IsDirty,"#{key} is dirty" if (!key.nil?) and @attributes_status[key]==:dirty
         end
       end
       setup_attributes
       nil
     end
+    def flush
+      fields.each do |key,val|
+        @attributes_status[key]=nil
+      end
+    end
     def fill_cache keys=nil
       if keys.nil?
         keys=[]
-        @@field_list.each do |key,val|
+        fields.each do |key,val|
           next if !@attributes_status[key].nil?
           keys << key
         end
@@ -82,7 +117,7 @@ module Redisted
     end
     def saved?
       return false if !persisted?
-      @@field_list.each do |key,val|
+      fields.each do |key,val|
         return false if @attributes_status[key]==:dirty
       end
       return true

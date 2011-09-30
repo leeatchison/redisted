@@ -1,8 +1,19 @@
 module Redisted
   class Base
+    def references
+      self.class.references
+    end
+    class << self
+      def references= val
+        @references=val
+      end
+      def references
+        @references||={}
+        @references
+      end
+    end
     private
     def init_references
-      @@reference_list||={}
     end
 
     def get_reference ref,details
@@ -40,24 +51,18 @@ module Redisted
       # Setup
       #
       def references_one sym,opt={}
-        @@reference_list||={}
         details=name_to_class_details sym,opt[:as]
-        raise InvalidReference,"Reference already defined" if !@@reference_list[details[:symbol]].nil?
+        raise InvalidReference,"Reference already defined" if !references[details[:symbol]].nil?
         field "#{details[:string]}_id".to_sym
         details[:ref_type]=:one
-        @@reference_list[details[:symbol]]=details
+        references[details[:symbol]]=details
       end
       def references_many sym,opt={}
-        @@reference_list||={}
         details=name_to_class_details sym,opt[:as]
-        raise InvalidReference,"Reference already defined" if !@@reference_list[details[:plural][:symbol]].nil?
+        raise InvalidReference,"Reference already defined" if !references[details[:plural][:symbol]].nil?
         field "#{details[:plural][:string]}_list".to_sym
         details[:ref_type]=:many
-        @@reference_list[details[:plural][:symbol]]=details
-      end
-
-      def references # TODO: Not published...
-        @@reference_list
+        references[details[:plural][:symbol]]=details
       end
 
       private

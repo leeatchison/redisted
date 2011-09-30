@@ -13,13 +13,13 @@ module Redisted
         if ids.is_a? Array
           ret=[]
           ids.each do |id|
-            m=Message.new
+            m=new
             m.load id
             ret << m
           end
           ret
         else
-          m=Message.new
+          m=new
           m.load ids
           m
         end
@@ -27,6 +27,7 @@ module Redisted
     end
     def load id
       @id=id
+      pre_cache_values if get_obj_option(:pre_cache_all) and get_obj_option(:pre_cache_all)[:when]==:create
       self
     end
   end
