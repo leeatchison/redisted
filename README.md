@@ -1,3 +1,11 @@
+PLEASE NOTE
+===========
+
+This is still ***UNDER DEVELOPMENT*** and not yet ready for prime-time. Feel free to fool around with it, file bug
+reports (via GitHub), and make suggestions. It is a work in progress. However, I do hope to have a fully
+flushed out implementation as soon as possible.
+
+
 Redisted
 ========
 
