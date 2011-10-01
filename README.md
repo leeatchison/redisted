@@ -224,12 +224,6 @@ Note that there may be other values in field-specific hash, such as default opti
 change over time. You should only assume that values you specifically add to the field definition appear in this
 hash, and that other values may or may not be present.
 
-Validations
-===========
-
-TODO
-
-
 Basic Find
 ==========
 
@@ -537,7 +531,7 @@ much of the above:
 
     class MyModel < Redisted::Base
       field :name, type: :string
-      field :test_int, type: :string
+      field :test_int, type: :integer
       field :provider, type: :string
 
       index :odd, includes: ->(elem){(elem.test_int%2)!=0}
@@ -554,6 +548,21 @@ Then, you can use them in queries:
     MyModel.sorted_odd.all
     MyModel.odd_providers.all
 
+Validations
+===========
+
+Standard ActiveModel validations work with Redisted. Such as:
+
+    class MyModel < Redisted::Base
+      field :name, type: :string
+      field :test_int, type: :integer
+      field :provider, type: :string
+
+      validates_length_of :name, :minumum=>5
+      validates_length_of :provider, :maximum=>20
+    end
+
+TODO:Note that "validates_uniqueness_of" is not yet supported...
 
 References (aka Relationships)
 ==============================
@@ -565,11 +574,62 @@ Redisted was created out of a need for a very fast way of assocating large numbe
 As such, the relation mechanims in Redisted are optimized for creating not only references to other Redisted models,
 but to models of other backend stores, such as ActiveRecord and Mongoid.
 
-LEELEE: TODO
+There are only two reference types, references_one and references_many. Here is an example:
 
+    class MyModel < Redisted::Base
+      field :name, type: :string
+      field :test_int, type: :integer
+      field :provider, type: :string
+
+      references_one :user
+      references_many :message
+
+      references_one :another_class, as: :aclass
+      references_many :another_class, as: :theclasses
+    end
+
+The "references_one" creates a reference to a single object of another model. The model does not have to be
+a redisted model (but it can be), it can be ActiveRecord, Mongoid, anything that accepts a ".find(id)" call.
+
+With a references_one field, you can:
+
+    u=ARUser.create
+    mm=MyModel.create
+
+    mm.user=u
+    or:
+    mm.user_id=u.id
+
+    u=mm.user # Returns an instance of ARUser
+    u=mm.user.xxx # Call method 'xxx' on the instance of ARUser
+
+With a refererences_many field, you can:
+
+    m1=ARMessage.create
+    m2=ARMessage.create
+    mm=MyModel.create
+
+    mm.message << m1
+    mm.message << m2
+
+    mm.message[0] # Returns an instance of ARMessage (m1)
+    mm.message[1] # Returns an instance of ARMessage (m2)
+
+This all will work as is, without any changes to the ARUser model. However, you will probably want to install
+a destroy callback in ARUser so that the reference is removed if 'u' is destroyed. You can do that using
+the following code:
+
+    class ARUser
+      Redisted::on_destroy :my_model,:user
+    end
+    class ARMessage
+      Redisted::on_destroy :my_model,:message
 
 
 Callbacks
 =========
 
-LEELEE (including destroy call backs...)
+Callbacks work the same as ActiveRecord. Redisted supports callbacks on create, update, save, and destroy.
+For update and save, the callbacks are called anytime a value is written to Redisted. So, if the model is setup
+so that each field update forces a write to Redisted (the default), then these two callbacks are called on each
+field update.
