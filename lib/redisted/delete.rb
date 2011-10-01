@@ -6,7 +6,7 @@ module Redisted
       @redis.del "#{prefix}:#{self.id}"
       id=nil
       attributes={}
-      @changed_attributes.clear
+      @attributes_status.clear
       # LEELEE: Also handle indices
       true
     end

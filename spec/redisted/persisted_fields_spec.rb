@@ -228,4 +228,11 @@ describe "Persisted Fields" do
     b.field2.should =="7"
     b.field3.should =="8"
   end
+
+  it "can populate an object via parameters to create" do
+    obj=FieldTest1.create({field1: "test111",field2: "test222"})
+    key="field_test1:#{obj.id}"
+    $redis.hget(key,"field1").should =="test111"
+    $redis.hget(key,"field2").should =="test222"
+  end
 end

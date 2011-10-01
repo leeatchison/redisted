@@ -44,7 +44,7 @@ module Redisted
         @indices
       end
       def index name,params
-        raise InvalidIndex,"Index redfined: #{name}" if indices[name]
+        raise InvalidIndex,"Index redefined: #{name}" if indices[name]
         entry={
             redis_key: "#{prefix}[#{name}]",
             optimistic_retry: params[:optimistic_retry],
@@ -320,7 +320,7 @@ module Redisted
       state
     end
 
-    public # Unfortunatley, this must be public, even though it should never be called externally
+    public # Unfortunately, this must be public, even though it should never be called externally
     def internal_only_force_update_attributes attr,status
       @attributes_value=attr
       @attributes_status=status
