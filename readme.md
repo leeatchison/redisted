@@ -641,3 +641,11 @@ Callbacks work the same as ActiveRecord. Redisted supports callbacks on create, 
 For update and save, the callbacks are called anytime a value is written to Redisted. So, if the model is setup
 so that each field update forces a write to Redisted (the default), then these two callbacks are called on each
 field update.
+
+Copyright
+=========
+(c) Lee Atchsion
+Permission is given to use this in any system, in whole or in part, without prior permission. No warranty is provided
+for any purpose.
+
+If you make improvements or fixes to this code, please submit a pull request to me on GitHub.
